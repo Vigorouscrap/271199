@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>幸福降临橹穆手心</title>
+    <style>
+        /* ---------- 全局奶油粉氛围 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 30%, #ffecf0, #ffe1e6);
+            font-family: 'Quicksand', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            /* 修复频闪：优化渲染性能 */
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-perspective: 1000;
+            perspective: 1000;
+        }
+
+        .magic-stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* ---------- SVG爱心容器 ---------- */
+        .heart-box {
+            position: relative;
+            z-index: 50;
+            animation: lovely-beat 1.3s infinite cubic-bezier(0.5, 0.1, 0.3, 1.5);
+            transform-origin: center;
+            /* 修复频闪：强制GPU加速 */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        .real-heart {
+            width: 240px;
+            height: 240px;
+        }
+
+        .real-heart svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 15px 25px rgba(255, 170, 180, 0.35));
+            /* 修复频闪：优化滤镜性能 */
+            will-change: filter;
+        }
+
+        /* 心跳动画 - 优化性能，减少重绘 */
+        @keyframes lovely-beat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.12); }
+            28% { transform: scale(1.2); }
+            40% { transform: scale(1.08); }
+            55% { transform: scale(1); }
+            70% { transform: scale(0.98); }
+            85% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* ---------- 散落的星星 + 天蓝色爱心 (背景装饰) ---------- */
+        .scattered-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .star, .blue-heart {
+            position: absolute;
+            white-space: nowrap;
+            animation: float-shine 4s infinite alternate ease-in-out;
+            filter: drop-shadow(0 0 8px rgba(255, 194, 179, 0.5));
+            opacity: 0.9;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .star {
+            color: rgba(255, 255, 255, 0.98);
+            font-size: 26px;
+            text-shadow: 0 0 20px #ffcfb0, 0 0 45px #ffb7b7;
+        }
+
+        /* 天蓝色爱心样式 */
+        .blue-heart {
+            color: #a0d0ff;      /* 温柔天蓝色 */
+            font-size: 30px;
+            text-shadow: 0 0 25px #9ac9ff, 0 0 50px #6eb5ff;
+            opacity: 0.85;
+            will-change: transform, opacity;
+        }
+
+        .heart-small {
+            font-size: 22px;
+            text-shadow: 0 0 20px #b3dbff;
+        }
+
+        .heart-large {
+            font-size: 40px;
+            text-shadow: 0 0 35px #7ebcff, 0 0 70px #4797ff;
+        }
+
+        .star-small {
+            font-size: 18px;
+            opacity: 0.85;
+            text-shadow: 0 0 18px #ffe1b5;
+        }
+
+        .star-large {
+            font-size: 34px;
+            text-shadow: 0 0 35px #ffded4, 0 0 70px #ffb1b1;
+        }
+
+        @keyframes float-shine {
+            0% { transform: translateY(0px) scale(0.95); opacity: 0.6; }
+            100% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+        }
+
+        /* ---------- 弹幕 - 降低密度，优化重叠 ---------- */
+        .danmaku-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            overflow: hidden;
+        }
+
+        .danmaku {
+            position: absolute;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 22px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(255, 150, 150, 0.6);
+            background: rgba(255, 235, 230, 0.2);
+            padding: 6px 18px;
+            border-radius: 50px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 20px rgba(255, 200, 200, 0.2);
+            animation: scrollDanmaku linear infinite;
+            z-index: 15;
+            font-family: 'Microsoft YaHei', 'Quicksand', sans-serif;
+            pointer-events: none;
+            transform: translateX(100vw);
+            animation-fill-mode: forwards;
+            /* 修复频闪：弹幕开启硬件加速 */
+            -webkit-transform: translateX(100vw) translateZ(0);
+            transform: translateX(100vw) translateZ(0);
+            will-change: transform;
+        }
+
+        .danmaku.slow { animation-duration: 30s; font-size: 20px; }  /* 速度放慢 */
+        .danmaku.medium { animation-duration: 22s; font-size: 24px; }
+        .danmaku.fast { animation-duration: 16s; font-size: 18px; }
+        .danmaku.xlarge { font-size: 30px; animation-duration: 38s; background: rgba(255, 235, 225, 0.15); border: none; }
+
+        @keyframes scrollDanmaku {
+            0% { transform: translateX(100vw) translateZ(0); opacity: 0.4; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(-450px) translateZ(0); opacity: 0; }
+        }
+
+        /* ---------- 烟花画布 ---------- */
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* 落款 */
+        .signature {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            color: #ffffff;
+            font-size: 15px;
+            background: rgba(255, 200, 200, 0.25);
+            padding: 6px 20px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255, 100, 100, 0.4);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .hint-click {
+            position: absolute;
+            bottom: 20px;
+            left: 30px;
+            color: #ffffff;
+            font-size: 15px;
+            background: rgba(255, 200, 200, 0.25);
+            padding: 6px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 8px rgba(255, 100, 100, 0.4);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        /* 响应式 - 小屏幕爱心自适应 */
+        @media (max-width: 600px) {
+            .real-heart { width: 180px; height: 180px; }
+            .danmaku { font-size: 18px; padding: 4px 12px; }
+            .danmaku.slow { font-size: 16px; }
+            .danmaku.medium { font-size: 20px; }
+            .danmaku.xlarge { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="magic-stage" id="clickZone">
+        <!-- SVG爱心 -->
+        <div class="heart-box" id="heart">
+            <div class="real-heart" style="width:240px; height:240px;">
+                <svg viewBox="80 190 500 120" width="240" height="240">
+                    <defs>
+                        <!-- 奶油粉渐变 -->
+                        <radialGradient id="heartGradient" cx="35%" cy="30%" r="70%">
+                            <stop offset="0%" stop-color="#ffe6ea"/>
+                            <stop offset="60%" stop-color="#ffc1c8"/>
+                            <stop offset="100%" stop-color="#ff9fad"/>
+                        </radialGradient>
+                        <!-- 柔和高光 -->
+                        <radialGradient id="highlight" cx="50%" cy="0%" r="60%">
+                            <stop offset="0%" stop-color="rgba(255,255,255,0.7)"/>
+                            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- 经典一笔爱心路径 -->
+                    <path 
+                        d="M256 464s-176-104-176-232c0-66 54-120 120-120
+                           44 0 84 24 104 60
+                           20-36 60-60 104-60
+                           66 0 120 54 120 120
+                           0 128-176 232-176 232z"
+                        fill="url(#heartGradient)"/>
+                    <!-- 顶部高光 -->
+                    <ellipse cx="260" cy="160" rx="90" ry="60" fill="url(#highlight)" opacity="0.6"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- 散落星星 + 天蓝色爱心 容器 -->
+        <div class="scattered-stars" id="starField"></div>
+        <!-- 弹幕容器 -->
+        <div class="danmaku-screen" id="danmakuContainer"></div>
+        <!-- 烟花canvas -->
+        <canvas id="fireworks-canvas"></canvas>
+
+        <!-- 装饰文字  -->
+        <div class="signature">💗 橹穆永远幸福 💗</div>
+        <div class="hint-click">✨ 点击爱心，看看会发生什么 ✨</div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ---------- 1. 散落的星星 + 天蓝色爱心 ----------
+            function initStarsAndHearts() {
+                const container = document.getElementById('starField');
+                if (!container) return;
+                container.innerHTML = '';
+
+                const totalCount = 32; // 总共装饰个数 (星星 + 爱心)
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                const centerX = w / 2, centerY = h / 2 - 10;
+
+                for (let i = 0; i < totalCount; i++) {
+                    // 随机决定是星星还是天蓝色爱心 (爱心比例约40%)
+                    const isHeart = Math.random() < 0.4;
+                    const element = document.createElement('span');
+
+                    if (isHeart) {
+                        element.className = 'blue-heart';
+                        // 爱心大小随机
+                        if (Math.random() < 0.3) element.classList.add('heart-large');
+                        else if (Math.random() < 0.5) element.classList.add('heart-small');
+                        
+                        // 爱心符号选用天蓝色系
+                        const heartRand = Math.random();
+                        if (heartRand < 0.33) element.innerHTML = '💙';
+                        else if (heartRand < 0.66) element.innerHTML = '💕';
+                        else element.innerHTML = '💗'; // 带点蓝调的菱形也好看
+                    } else {
+                        element.className = 'star';
+                        if (Math.random() < 0.3) element.classList.add('star-large');
+                        else if (Math.random() < 0.5) element.classList.add('star-small');
+                        
+                        const rand = Math.random();
+                        if (rand < 0.33) element.innerHTML = '⭐';
+                        else if (rand < 0.66) element.innerHTML = '⭐';
+                        else element.innerHTML = '💙';
+                    }
+
+                    let x, y;
+                    // 避开爱心区域 (中心区域)
+                    do {
+                        x = Math.random() * w;
+                        y = Math.random() * h;
+                    } while (Math.abs(x - centerX) < 170 && Math.abs(y - centerY) < 160);
+
+                    element.style.left = x + 'px';
+                    element.style.top = y + 'px';
+                    
+                    const delay = Math.random() * 6;
+                    element.style.animationDelay = delay + 's';
+                    element.style.animationDuration = (3 + Math.random() * 5) + 's';
+                    element.style.transform = `rotate(${Math.random() * 30}deg)`;
+                    
+                    container.appendChild(element);
+                }
+            }
+
+            // ---------- 2. 弹幕  ----------
+            function initDanmaku() {
+                const container = document.getElementById('danmakuContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                const messages = [
+                    "祝你星途璀璨 🌟",
+                    "祝你星途璀璨 🌟",
+                    "祝你星途璀璨 🌟",
+                    "橹穆幸福就是现在",
+                    "多远都要在一起",
+                    "爱是最伟大的魔法 ✨",
+                    "我们以后只留幸福的眼泪 💦",
+                    "我希望爱永存 💕",
+	    "爱是我最重要的东西 💕",
+                    "直到死亡将我们分开 ❤️‍🔥",
+                    "紧张吗 有点 💦",
+                    "紧张吗 有点 💦",
+                    "幸福降临橹穆手心 ✨",
+                    "橹穆爱能克服远距离 💘",
+                    "落叶知秋 我还以为你不说声再见就走了呢 🍂",
+                    "那我就好好留下来吧 💓",
+                    "俺也一样 🎻",
+                    "神的心事也是微微酸的 🎻",
+                    "祝你星途璀璨 🌟",
+                    "祝你星途璀璨 🌟",
+                    "是温柔到极致的病态 还是思念成疾的憔悴 💦",
+	    "这致命爱火 已石化了我 🤟",
+                    "夜里做了美丽的噩梦 想清醒我却抵不过心动 💓",
+                    "意识自控 脉搏流动 全被你神秘引力操控 🗡",
+                    "You took my heart away 💘",
+                    "away~ away~ away~~~",
+                    "away~ away~ away~~~",
+                    "或許 你有點在意所以故意跟我走很近",
+                    "浪漫的秘密 只差当事人还在逃避 ✨",
+                    "祝你星途璀璨 🌟",
+                    "祝你星途璀璨 🌟",
+                ];
+
+                // 降低弹幕密度：22条
+                const danmakuCount = 40; 
+                const segmentHeight = 100 / danmakuCount;
+
+                for (let i = 0; i < danmakuCount; i++) {
+                    const dan = document.createElement('div');
+                    dan.className = 'danmaku';
+
+                    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                    dan.textContent = randomMsg;
+
+                    const speedType = Math.random();
+                    if (speedType < 0.33) dan.classList.add('slow');
+                    else if (speedType < 0.66) dan.classList.add('medium');
+                    else dan.classList.add('fast');
+                    
+                    if (Math.random() > 0.7) dan.classList.add('xlarge');
+
+                    // 纵向均分 + 微小偏移
+                    const basePos = i * segmentHeight + segmentHeight / 2;
+                    const offset = (Math.random() - 0.5) * segmentHeight * 0.3;
+                    let topPos = basePos + offset;
+                    topPos = Math.min(95, Math.max(5, topPos));
+                    dan.style.top = topPos + '%';
+                    
+                    const delay = Math.random() * 5;
+                    dan.style.animationDelay = delay + 's';
+                    
+                    dan.style.color = `rgba(255, 255, 255, ${0.92 + Math.random() * 0.08})`;
+                    dan.style.background = `rgba(255, 235, 230, ${0.1 + Math.random() * 0.1})`;
+                    
+                    container.appendChild(dan);
+                }
+            }
+
+            // ---------- 3. 重置布局 ----------
+            function resetLayout() {
+                initStarsAndHearts();
+                initDanmaku();
+            }
+
+            // ---------- 4. 烟花系统 ----------
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let fireworksActive = false;
+            let animFrame = null;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const heart = document.getElementById('heart');
+
+            function launchFireworks(e) {
+                e.stopPropagation();
+                let rect = heart.getBoundingClientRect();
+                let x = rect.left + rect.width / 2;
+                let y = rect.top + rect.height / 2;
+                if (e.clientX && e.clientY) {
+                    x = e.clientX;
+                    y = e.clientY;
+                }
+
+                // 连续烟花
+                createFireworkBurst(x, y);
+                setTimeout(() => { createFireworkBurst(x - 30, y - 20); }, 100);
+                setTimeout(() => { createFireworkBurst(x + 40, y + 10); }, 200);
+                setTimeout(() => { createFireworkBurst(x - 20, y + 40); }, 300);
+                setTimeout(() => { createFireworkBurst(x + 30, y - 30); }, 400);
+            }
+
+            function createFireworkBurst(x, y) {
+                const colors = ['#FFDDC4', '#FFE4D6', '#FFD9C0', '#FFC4C0', '#FFB6B9', '#FFE0B2', '#FFD2B0', '#FFEAD2'];
+                const count = 65 + Math.floor(Math.random() * 45);
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const speed = 3.5 + Math.random() * 10;
+                    const vx = Math.cos(angle) * speed * (0.6 + Math.random() * 0.6);
+                    const vy = Math.sin(angle) * speed * (0.6 + Math.random() * 0.6);
+                    const size = 6 + Math.random() * 14;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    particles.push({
+                        x, y, vx, vy,
+                        size,
+                        color,
+                        alpha: 0.9,
+                        life: 0.95 + Math.random() * 0.2,
+                        decay: 0.012 + Math.random() * 0.014,
+                    });
+                }
+
+                if (!fireworksActive) {
+                    fireworksActive = true;
+                    animateFireworks();
+                }
+            }
+
+            function animateFireworks() {
+                if (!fireworksActive) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let hasAlive = false;
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.045;
+                    p.vx *= 0.992;
+                    p.vy *= 0.992;
+                    p.life -= p.decay;
+                    p.alpha = p.life * 0.8;
+
+                    if (p.life <= 0.02 || p.x < -50 || p.x > canvas.width + 50 || p.y < -50 || p.y > canvas.height + 50) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    hasAlive = true;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life * 0.7, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = '#FFF1E0';
+                    ctx.shadowBlur = 16 * p.life;
+                    ctx.globalAlpha = p.alpha * 0.9;
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = '#FFFEF9';
+                    ctx.globalAlpha = p.alpha * 0.4;
+                    ctx.arc(p.x - 1, p.y - 1, p.size * p.life * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+
+                if (hasAlive) {
+                    animFrame = requestAnimationFrame(animateFireworks);
+                } else {
+                    fireworksActive = false;
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+            }
+
+            heart.addEventListener('click', launchFireworks);
+
+            // 初始化
+            window.addEventListener('load', () => {
+                resetLayout();
+            });
+
+            resetLayout();
+
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    resetLayout();
+                }, 150);
+            });
+        })();
+    </script>
+
+    <noscript>
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:white; font-size:30px; text-shadow:0 0 20px #ff9e9e;">❤️ 穆祉丞，我爱你 ❤️</div>
+    </noscript>
+</body>
+</html>
